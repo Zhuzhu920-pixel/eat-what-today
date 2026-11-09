@@ -1,0 +1,179 @@
+/* 桔利冰冰 · 2026-11-05 视觉打磨层
+   目标：摆正相框、去掉胶带与橙色星标、统一手绘纸感；
+   封面期间预热三维模型，进入首页只做淡入。
+   本文件最后加载，覆盖 style.css / site-v3.css 的历史规则。 */
+
+/* ---------- 1. 封面 → 首页：不再「卡」出冰碗 ---------- */
+#cover { position: fixed; inset: 0; z-index: 50; height: 100svh; }
+body.is-cover { overflow: hidden; }
+#site { opacity: 1; transition: opacity .55s ease; }
+#site.site-pending { opacity: 0; pointer-events: none; }
+#site.entering { animation: none; }
+#cover.leaving { animation: coverFade .48s ease-in forwards; pointer-events: none; }
+@keyframes coverFade { from { opacity: 1; } to { opacity: 0; } }
+
+#bowl canvas { opacity: 0; transition: opacity .6s ease; }
+#bowl.model-active canvas { opacity: 1; }
+#home #bowl.model-active > img { display: none !important; }
+#home .viewer-tools { transition: opacity .4s ease; }
+
+/* ---------- 2. 统一相框：摆正、纸感、无胶带、无星标 ---------- */
+.paper-frame {
+  position: relative;
+  margin: 0;
+  padding: 15px 15px 0;
+  background-color: #fffaf0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.72' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Cpath fill='%238b6236' opacity='.055' filter='url(%23p)' d='M0 0h160v160H0z'/%3E%3C/svg%3E");
+  border: 1px solid #e2c9a2;
+  border-radius: 2px 3px 2px 3px;
+  box-shadow: inset 0 1px 0 #fffefa, 0 9px 24px #7a55301c, 0 2px 5px #7a553010;
+  transform: none !important;
+}
+.paper-frame::before {
+  content: "";
+  position: absolute; left: 15px; right: 15px; top: 8px; height: 1px;
+  background: linear-gradient(90deg, transparent, #c9a87855 12%, #c9a87855 88%, transparent);
+}
+.paper-frame::after { content: none !important; }
+
+.frame-inner {
+  position: relative;
+  padding: 7px;
+  background: #fffdf7;
+  border: 1px solid #e4cfae;
+  box-shadow: inset 0 1px 4px #8a623a12;
+}
+.frame-inner img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border: 1px solid #ead9bd;
+}
+.paper-frame--art .frame-inner { aspect-ratio: 3 / 4; }
+.paper-frame--art .frame-inner img { object-fit: contain; background: #fffdf7; }
+
+.paper-frame figcaption {
+  display: flex; align-items: baseline; justify-content: center; gap: 10px;
+  padding: 13px 4px 15px;
+  color: #6f4b32; font-size: 18px; letter-spacing: .08em; text-align: center;
+  line-height: 1.5;
+}
+.frame-kind {
+  font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+  font-size: 10px; font-weight: normal; letter-spacing: .1em;
+  color: #a1764f; border: 1px solid #d8bb93; border-radius: 2px;
+  padding: 2px 6px; white-space: nowrap;
+}
+
+/* 首页：产品实拍，摆正 */
+#home .photo-story { transform: none !important; margin: 0; padding-top: 0; }
+#home .paper-frame--photo .frame-inner img {
+  height: clamp(280px, 29vw, 430px);
+  object-position: center 54%;
+}
+#home .photo-link { margin-top: 22px; }
+
+/* 到店：门店实拍，暖色调融入纸底 */
+.visit-layout .paper-frame { padding: 13px 13px 0; width: 100%; }
+.visit-layout .paper-frame::before { left: 13px; right: 13px; }
+.visit-layout .paper-frame .frame-inner img {
+  height: 430px;
+  object-position: center 58%;
+  filter: sepia(.07) saturate(.95);
+}
+.visit-layout .paper-frame figcaption { font-size: 18px; }
+
+/* 详情：手绘菜单插画 */
+#detail .detail { align-items: center; gap: 6%; }
+#detail .detail-frame { max-width: 520px; margin: 0 auto; width: 100%; }
+#detail .detail-frame .frame-inner img { width: 100%; height: auto; max-height: none; }
+#detailPhoto { width: 100%; height: auto; max-height: none; object-fit: contain; }
+.detail-copy { max-width: 26em; }
+#detail .detail-copy h1 { font-size: clamp(32px, 3.2vw, 44px); line-height: 1.35; margin: 10px 0 0; }
+#detail .detail-copy .hand-note { font-size: 16px; }
+.detail-lead {
+  position: relative;
+  margin: 26px 0 4px; padding-top: 22px;
+  color: #8a6647; font-size: 16px; line-height: 1.9;
+}
+.detail-lead::before {
+  content: ""; position: absolute; left: 0; top: 0;
+  width: 46px; height: 1px; background: #c99a67;
+}
+#detail .detail-copy .brush { margin-top: 22px; }
+
+/* 抽签揭晓：统一手绘插画，不再出现店内实拍 */
+.fortune-result .reveal-frame { max-width: 400px; margin: 0 auto; width: 100%; }
+.fortune-result .reveal-frame .frame-inner img {
+  height: auto; max-height: 430px; object-fit: contain; transform: none; border: 0; box-shadow: none;
+}
+#revealPhoto.is-art {
+  width: 100%; height: auto; max-height: none; object-fit: contain;
+  transform: none !important; border: 0 !important;
+}
+#revealKind { font-size: 12px; }
+.reveal-copy { padding: 0 10px; }
+.reveal-copy .brush { margin-top: 18px; }
+
+/* ---------- 3. 菜单卡片：纸卡而非硬边白盒 ---------- */
+#menu .menu-art-card {
+  position: relative;
+  padding: 9px 9px 0 !important;
+  background: linear-gradient(160deg, #fffdf6, #fbf2e0) !important;
+  border: 1px solid #e4cda7 !important;
+  border-radius: 2px !important;
+  box-shadow: 0 2px 0 #eddbbc, 0 8px 18px #7a553010 !important;
+}
+#menu .menu-art-card:hover {
+  box-shadow: 0 3px 0 #e8d2ae, 0 14px 26px #7a55301a !important;
+}
+.card-image {
+  display: block; position: relative;
+  background: #fffdf7; border: 1px solid #e6d2b2;
+}
+#menu .menu-art-card img {
+  display: block; width: 100%; height: auto; aspect-ratio: 3 / 4;
+  object-fit: contain; border: 0; border-radius: 0;
+}
+#menu .menu-art-card h2 { margin: 16px 6px 8px; }
+#menu .menu-art-card h2::after {
+  content: ""; display: block; width: 30px; height: 1px;
+  background: #d09a5e; margin-top: 10px;
+}
+#menu .card-bottom { padding: 0 6px 14px; }
+#menu .menu-filters button[aria-pressed="true"] {
+  background: #e0721d; border-color: #e0721d;
+  box-shadow: 0 2px 0 #bd5c14;
+}
+
+/* ---------- 4. 按钮：去掉内发光，收敛塑料感 ---------- */
+.brush {
+  border-radius: 12px 18px 11px 16px / 15px 12px 17px 11px !important;
+  box-shadow: 0 2px 0 #c4601a, 0 7px 16px #a3541c1f !important;
+}
+
+/* ---------- 5. 响应式 ---------- */
+@media (max-width: 1050px) {
+  #home .paper-frame--photo .frame-inner img { height: clamp(240px, 27vw, 360px); }
+  .visit-layout .paper-frame .frame-inner img { height: 360px; }
+}
+@media (max-width: 700px) {
+  .paper-frame { padding: 11px 11px 0; }
+  .paper-frame::before { left: 11px; right: 11px; }
+  .paper-frame figcaption { font-size: 16px; padding: 11px 2px 13px; gap: 8px; }
+  #home .photo-story { margin: 36px 4% 0 !important; width: auto; max-width: 420px; }
+  #home .paper-frame--photo .frame-inner img { height: 78vw; max-height: 360px; }
+  .visit-layout .paper-frame .frame-inner img { height: 300px; }
+  .visit-layout .paper-frame figcaption { font-size: 16px; }
+  #detail .detail { padding-top: 18px; }
+  #detail .detail-frame { max-width: 440px; }
+  #detail .detail-copy h1 { font-size: 30px; }
+  .detail-lead { margin-top: 20px; }
+  .fortune-result .reveal-frame { max-width: 330px; }
+  .fortune-result .reveal-frame .frame-inner img { max-height: 360px; }
+  #revealPhoto.is-art { width: 100%; max-height: 360px; }
+  #menu .menu-art-card { padding: 7px 7px 0 !important; }
+  #menu .menu-art-card h2 { font-size: 18px; margin: 12px 4px 7px; }
+  #menu .card-bottom { padding: 0 4px 12px; }
+}
