@@ -39,7 +39,7 @@
 @keyframes jl-dot{0%,80%,100%{transform:translateY(0);opacity:.4}40%{transform:translateY(-9px);opacity:1}}
 .jili-spin{display:none;width:16px;height:16px;margin-right:8px;vertical-align:-3px;
   border:3px solid #e7c79c;border-top-color:#e66c20;border-radius:50%;animation:jili-spin .8s linear infinite}
-body:not(.model-active):not(.model-fallback) .viewer-tools .jili-spin{display:inline-block}
+.viewer-tools .jili-spin{display:inline-block}
 @keyframes jili-spin{to{transform:rotate(360deg)}}
 @media (prefers-reduced-motion: reduce){
   .jl-orange,.jl-dots span,.jili-spin{animation:none}
@@ -79,25 +79,45 @@ body:not(.model-active):not(.model-fallback) .viewer-tools .jili-spin{display:in
 <script>
 (function(){
   var loader=document.getElementById("jili-loader");
-  var finish=function(){ if(!loader) return; loader.classList.add("jl-hide");    setTimeout(function(){ loader.style.display="none"; },650); };
+  var finish=function(){
+    if(!loader||loader.dataset.done) return;
+    loader.dataset.done="1";
+    loader.classList.add("jl-hide");
+    setTimeout(function(){ loader.style.display="none"; },650);
+  };
   var preview=new URLSearchParams(location.search).get("preview")==="home";
   var reduce=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
-  if(preview){ setTimeout(finish, reduce?0:500); return; }
-  var iframe=document.querySelector("#cover iframe");
-  var ready=false;
-  try{ if(iframe){ ready=iframe.readyState==="complete"||(iframe.contentDocument&&iframe.contentDocument.readyState==="complete"); } }catch(e){}
-  if(ready){ finish(); }
-  else if(iframe){ iframe.addEventListener("load",finish,{once:true}); }
-  setTimeout(finish,3000);
-  var bowl=document.getElementById("bowl"), retry=document.getElementById("retryModel");
-  if(bowl&&retry){
-    var obs=new MutationObserver(function(){ if(!retry.hidden){ bowl.classList.add("model-fallback"); document.body.classList.add("model-fallback"); } });
-    obs.observe(retry,{attributes:true,attributeFilter:["hidden"]});
+  if(preview){ setTimeout(finish, reduce?0:500); }
+  else {
+    var iframe=document.querySelector("#cover iframe");
+    var ready=false;
+    try{ if(iframe){ ready=iframe.readyState==="complete"||(iframe.contentDocument&&iframe.contentDocument.readyState==="complete"); } }catch(e){}
+    if(ready){ finish(); }
+    else if(iframe){ iframe.addEventListener("load",finish,{once:true}); }
+    setTimeout(finish,3000);
   }
-  window.addEventListener("jili-model-ready",function(){
-    if(bowl) bowl.classList.add("model-active");
-    document.body.classList.add("model-active");
-  });
+
+  /* 冰碗预热转圈：直接跟随 app.js 的真实状态，不依赖事件派发时序 */
+  var bowl=document.getElementById("bowl"),
+      spin=document.querySelector(".viewer-tools .jili-spin"),
+      status=document.getElementById("viewerStatus"),
+      retry=document.getElementById("retryModel");
+  function syncSpin(){
+    if(!spin) return;
+    var done = (bowl && bowl.classList.contains("model-active"))
+            || (bowl && bowl.classList.contains("model-fallback"))
+            || (retry && !retry.hidden)
+            || (status && status.textContent.indexOf("冰碗准备中") === -1 && status.textContent.trim() !== "");
+    spin.style.display = done ? "none" : "";
+  }
+  if(bowl)   new MutationObserver(syncSpin).observe(bowl,{attributes:true,attributeFilter:["class"]});
+  if(status) new MutationObserver(syncSpin).observe(status,{childList:true,characterData:true,subtree:true});
+  if(retry)  new MutationObserver(syncSpin).observe(retry,{attributes:true,attributeFilter:["hidden"]});
+  window.addEventListener("jili-model-ready", syncSpin);
+  syncSpin();
+  setTimeout(syncSpin, 800);
+  setTimeout(syncSpin, 3000);
+  setTimeout(function(){ if(spin) spin.style.display="none"; }, 20000);
 })();
 </script>
 </body></html>
